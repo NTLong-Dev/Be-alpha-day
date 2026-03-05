@@ -14,7 +14,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-family: system-ui, -apple-system, BlinkMacSystemFont;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont
         }
 
         .card {
@@ -48,6 +48,11 @@
             margin-bottom: 12px
         }
 
+        .modal.modal-static .modal-dialog {
+            transform: none !important;
+            animation: none !important;
+        }
+
         .voucher-code {
             font-size: 28px;
             font-weight: 700;
@@ -64,15 +69,13 @@
             position: fixed;
             width: 8px;
             height: 14px;
-            top: -20px;
-            z-index: 9999;
             pointer-events: none;
-            animation: fall linear forwards;
+            animation: fall linear forwards
         }
 
         @keyframes fall {
             to {
-                transform: translateY(110vh) rotate(360deg);
+                transform: translate(var(--dx), var(--dy)) rotate(360deg);
                 opacity: .8
             }
         }
@@ -89,7 +92,7 @@
                     <div class="card-body p-4 p-lg-5">
 
                         <div class="logo">
-                            <img src="distribuidor-swit-espana.png">
+                            <img src="swit-logo.png">
                         </div>
 
                         <h4 class="text-center fw-bold mb-2">Nhận ưu đãi & voucher</h4>
@@ -109,8 +112,9 @@
                                     placeholder="Nhập số điện thoại" required minlength="10" maxlength="10">
                             </div>
 
-                            <button type="submit" class="btn btn-dark w-100 btn-lg" id="submitBtn">Gửi thông
-                                tin</button>
+                            <button type="submit" class="btn btn-dark w-100 btn-lg" id="submitBtn">
+                                Gửi thông tin
+                            </button>
 
                         </form>
 
@@ -157,7 +161,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
-        const API_URL = "https://script.google.com/macros/s/AKfycbyKKFT7DHMxQIsjnH77QF5RoSu25-Q5oBvRALwxhJSWJIEuYYt2baAokgYH0_3cRMeGtw/exec"
+        const API_URL = "https://script.google.com/macros/s/AKfycbzQY2yh3gNpykF19dgCF63RXZ8VRxo0zIFEbfQRhlDheiu4l3YGZRJAh2YpmJVOfJ_C_w/exec"
         const REDIRECT_URL = "https://web.facebook.com/switvietnam"
 
         const form = document.getElementById("switForm")
@@ -175,16 +179,41 @@
             return s
         }
 
-        function launchConfetti() {
+        function launchConfettiFromModal() {
+
+            const modalEl = document.getElementById("voucherModal")
+            const box = modalEl.querySelector(".voucher-box")
+
+            if (!box) return
+
+            const rect = box.getBoundingClientRect()
+
+            const startX = rect.left + rect.width / 2
+            const startY = rect.top + rect.height / 2
+
             for (let i = 0; i < 120; i++) {
+
                 const c = document.createElement("div")
                 c.className = "confetti"
+
                 const colors = ["#ff0000", "#ffd700", "#00c853", "#2979ff", "#ff9100"]
                 c.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)]
-                c.style.left = Math.random() * window.innerWidth + "px"
-                c.style.animationDuration = (2 + Math.random() * 2) + "s"
+
+                const angle = Math.random() * Math.PI * 2
+                const distance = 160 + Math.random() * 180
+
+                const offsetX = Math.cos(angle) * distance
+                const offsetY = Math.sin(angle) * distance
+
+                c.style.left = startX + "px"
+                c.style.top = startY + "px"
+                c.style.zIndex = 9999
+                c.style.setProperty("--dx", offsetX + "px")
+                c.style.setProperty("--dy", offsetY + "px")
+                c.style.animationDuration = (0.6 + Math.random() * 0.4) + "s"
+
                 document.body.appendChild(c)
-                setTimeout(() => c.remove(), 4000)
+                setTimeout(() => c.remove(), 1000)
             }
         }
 
@@ -219,6 +248,7 @@
             })
                 .then(r => r.json())
                 .then(res => {
+
                     loading.classList.add("d-none")
 
                     if (res.result === "exists") {
@@ -230,9 +260,15 @@
                     document.getElementById("voucherCode").innerText = currentVoucherCode
                     saveVoucher(currentVoucherCode)
 
-                    const modal = new bootstrap.Modal(document.getElementById("voucherModal"))
+                    const modalEl = document.getElementById("voucherModal")
+                    const modal = new bootstrap.Modal(modalEl, {
+                        backdrop: "static",
+                        keyboard: false
+                    })
+
                     modal.show()
-                    launchConfetti()
+
+                    modalEl.addEventListener("shown.bs.modal", launchConfettiFromModal, { once: true })
                 })
                 .catch(() => {
                     alert("Không gửi được dữ liệu. Vui lòng thử lại.")
@@ -248,6 +284,7 @@
         })
 
         function generateVoucherImage(code, callback) {
+
             const canvas = document.createElement("canvas")
             canvas.width = 900
             canvas.height = 500
@@ -294,14 +331,22 @@ Be Alpha Day ngày 14/03/2026. Thời gian áp dụng mã giảm giá từ 14/03
         }
 
         window.addEventListener("load", function () {
+
             const saved = loadVoucher()
-            if (saved) {
-                currentVoucherCode = saved
-                document.getElementById("voucherCode").innerText = saved
-                const modal = new bootstrap.Modal(document.getElementById("voucherModal"))
-                modal.show()
-                launchConfetti()
-            }
+            if (!saved) return
+
+            currentVoucherCode = saved
+            document.getElementById("voucherCode").innerText = saved
+
+            const modalEl = document.getElementById("voucherModal")
+            const modal = new bootstrap.Modal(modalEl, {
+                backdrop: "static",
+                keyboard: false
+            })
+
+            modal.show()
+
+            modalEl.addEventListener("shown.bs.modal", launchConfettiFromModal, { once: true })
         })
     </script>
 
