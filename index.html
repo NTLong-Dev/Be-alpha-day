@@ -5,6 +5,7 @@
     <meta charset="utf-8">
     <title>SWIT Việt Nam</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
+
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 
     <style>
@@ -48,11 +49,6 @@
             margin-bottom: 12px
         }
 
-        .modal.modal-static .modal-dialog {
-            transform: none !important;
-            animation: none !important
-        }
-
         .voucher-code {
             font-size: 28px;
             font-weight: 700;
@@ -68,15 +64,16 @@
         .confetti {
             position: fixed;
             width: 8px;
+            z-index: 9999;
             height: 14px;
             pointer-events: none;
-            animation: fall linear forwards
+            animation: burst linear forwards
         }
 
-        @keyframes fall {
+        @keyframes burst {
             to {
-                transform: translate(var(--dx), var(--dy)) rotate(360deg);
-                opacity: .8
+                transform: translate(var(--dx), var(--dy)) rotate(720deg);
+                opacity: 0
             }
         }
     </style>
@@ -101,15 +98,14 @@
                         <form id="switForm">
 
                             <div class="mb-3">
-                                <label class="form-label">Họ và tên:</label>
-                                <input type="text" id="name" class="form-control form-control-lg"
-                                    placeholder="Nhập họ và tên" required>
+                                <label class="form-label">Họ và tên</label>
+                                <input type="text" id="name" class="form-control form-control-lg" required>
                             </div>
 
                             <div class="mb-4">
-                                <label class="form-label">Số điện thoại:</label>
-                                <input type="tel" id="phone" class="form-control form-control-lg"
-                                    placeholder="Nhập số điện thoại" required minlength="10" maxlength="10">
+                                <label class="form-label">Số điện thoại</label>
+                                <input type="tel" id="phone" class="form-control form-control-lg" required
+                                    minlength="10" maxlength="10">
                             </div>
 
                             <button type="submit" class="btn btn-dark w-100 btn-lg" id="submitBtn">
@@ -118,7 +114,9 @@
 
                         </form>
 
-                        <div id="loading" class="text-center mt-3 text-muted d-none">Đang xử lý...</div>
+                        <div id="loading" class="text-center mt-3 text-muted d-none">
+                            Đang xử lý...
+                        </div>
 
                     </div>
                 </div>
@@ -143,15 +141,17 @@
                     </div>
 
                     <div class="small-note">
-                        Chương trình giảm giá 10% tất cả các mã pin của SWIT chỉ áp dụng cho khách hàng
-                        tại sự kiện Be Alpha Day ngày 14/03/2026.
-                        Thời gian áp dụng mã giảm giá từ 14/03/2026 đến 14/06/2026!
+                        Chương trình giảm giá 10% tất cả các mã pin SWIT áp dụng tại sự kiện
+                        Be Alpha Day ngày 14/03/2026.
+                        Thời gian sử dụng từ 14/03/2026 đến 14/06/2026.
                     </div>
 
                 </div>
 
                 <div class="modal-footer">
-                    <button class="btn btn-dark w-100" id="acceptBtn">Chấp nhận</button>
+                    <button class="btn btn-dark w-100" id="acceptBtn">
+                        Chấp nhận
+                    </button>
                 </div>
 
             </div>
@@ -162,63 +162,24 @@
 
     <script>
 
-        const API_URL = "https://script.google.com/macros/s/AKfycbzQY2yh3gNpykF19dgCF63RXZ8VRxo0zIFEbfQRhlDheiu4l3YGZRJAh2YpmJVOfJ_C_w/exec"
+        const API_URL = "https://script.google.com/macros/s/AKfycbxvsJNVz4H_Ey3bvMss54ScrXdfubCBnl_c5HcU2J-Ie_SU2kB9WJfg9zBGHL6qm87NZA/exec"
         const REDIRECT_URL = "https://web.facebook.com/switvietnam"
 
         const form = document.getElementById("switForm")
-        const loading = document.getElementById("loading")
         const submitBtn = document.getElementById("submitBtn")
+        const loading = document.getElementById("loading")
 
         let currentVoucherCode = ""
+        let isSubmitting = false
 
         function randomVoucherCode() {
+
             const prefix = "SWIT10"
-            const chars = "0123456789"
-            let randomPart = ""
+            const time = Date.now().toString().slice(-4)
+            const rand = Math.floor(Math.random() * 900 + 100)
 
-            for (let i = 0; i < 4; i++) {
-                randomPart += chars[Math.floor(Math.random() * chars.length)]
-            }
+            return prefix + time + rand
 
-            return prefix + randomPart
-        }
-
-        function launchConfettiFromModal() {
-
-            const modalEl = document.getElementById("voucherModal")
-            const box = modalEl.querySelector(".voucher-box")
-
-            if (!box) return
-
-            const rect = box.getBoundingClientRect()
-
-            const startX = rect.left + rect.width / 2
-            const startY = rect.top + rect.height / 2
-
-            for (let i = 0; i < 120; i++) {
-
-                const c = document.createElement("div")
-                c.className = "confetti"
-
-                const colors = ["#ff0000", "#ffd700", "#00c853", "#2979ff", "#ff9100"]
-                c.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)]
-
-                const angle = Math.random() * Math.PI * 2
-                const distance = 160 + Math.random() * 180
-
-                const offsetX = Math.cos(angle) * distance
-                const offsetY = Math.sin(angle) * distance
-
-                c.style.left = startX + "px"
-                c.style.top = startY + "px"
-                c.style.zIndex = 9999
-                c.style.setProperty("--dx", offsetX + "px")
-                c.style.setProperty("--dy", offsetY + "px")
-                c.style.animationDuration = (0.6 + Math.random() * 0.4) + "s"
-
-                document.body.appendChild(c)
-                setTimeout(() => c.remove(), 1000)
-            }
         }
 
         function saveVoucher(code) {
@@ -229,22 +190,65 @@
             return localStorage.getItem("swit_voucher")
         }
 
+        function launchConfettiFromVoucher() {
+
+            const box = document.querySelector(".voucher-box")
+            if (!box) return
+
+            const rect = box.getBoundingClientRect()
+
+            const startX = rect.left + rect.width / 2
+            const startY = rect.top + rect.height / 2
+
+            for (let i = 0; i < 80; i++) {
+
+                const c = document.createElement("div")
+                c.className = "confetti"
+
+                const colors = ["#ff0000", "#ffd700", "#00c853", "#2979ff", "#ff9100"]
+                c.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)]
+
+                const angle = Math.random() * Math.PI * 2
+                const distance = 120 + Math.random() * 200
+
+                const dx = Math.cos(angle) * distance
+                const dy = Math.sin(angle) * distance
+
+                c.style.left = startX + "px"
+                c.style.top = startY + "px"
+
+                c.style.setProperty("--dx", dx + "px")
+                c.style.setProperty("--dy", dy + "px")
+
+                c.style.animationDuration = (0.7 + Math.random() * 0.5) + "s"
+
+                document.body.appendChild(c)
+
+                setTimeout(() => c.remove(), 1200)
+
+            }
+
+        }
+
         form.addEventListener("submit", function (e) {
 
             e.preventDefault()
+
+            if (isSubmitting) return
 
             const name = document.getElementById("name").value.trim()
             const phone = document.getElementById("phone").value.trim()
 
             if (!name || !phone) {
-                alert("Vui lòng nhập đầy đủ thông tin.")
+                alert("Vui lòng nhập đầy đủ thông tin")
                 return
             }
 
+            isSubmitting = true
             submitBtn.disabled = true
             loading.classList.remove("d-none")
 
-            currentVoucherCode = randomVoucherCode(8)
+            currentVoucherCode = randomVoucherCode()
 
             fetch(API_URL, {
                 method: "POST",
@@ -256,91 +260,51 @@
 
                     loading.classList.add("d-none")
 
-                    if (res.result === "exists") {
-                        alert("Khách hàng đã tồn tại.")
+                    if (res.result === "phone_exists") {
+                        alert("Số điện thoại đã nhận voucher.")
                         submitBtn.disabled = false
+                        isSubmitting = false
+                        return
+                    }
+
+                    if (res.result === "voucher_exists") {
+                        location.reload()
                         return
                     }
 
                     document.getElementById("voucherCode").innerText = currentVoucherCode
+
                     saveVoucher(currentVoucherCode)
 
                     const modalEl = document.getElementById("voucherModal")
-                    const modal = new bootstrap.Modal(modalEl, { backdrop: "static", keyboard: false })
+
+                    const modal = new bootstrap.Modal(modalEl, {
+                        backdrop: "static",
+                        keyboard: false
+                    })
 
                     modal.show()
 
-                    modalEl.addEventListener("shown.bs.modal", launchConfettiFromModal, { once: true })
+                    modalEl.addEventListener("shown.bs.modal", launchConfettiFromVoucher, { once: true })
 
                 })
                 .catch(() => {
-                    alert("Không gửi được dữ liệu. Vui lòng thử lại.")
+
+                    alert("Không gửi được dữ liệu")
+
                     submitBtn.disabled = false
                     loading.classList.add("d-none")
+                    isSubmitting = false
+
                 })
+
         })
 
         document.getElementById("acceptBtn").addEventListener("click", function () {
-            generateVoucherImage(currentVoucherCode, function () {
-                window.location.href = REDIRECT_URL
-            })
+
+            window.location.href = REDIRECT_URL
+
         })
-
-        function generateVoucherImage(code, callback) {
-
-            const canvas = document.createElement("canvas")
-            canvas.width = 900
-            canvas.height = 500
-
-            const ctx = canvas.getContext("2d")
-
-            ctx.fillStyle = "#ffffff"
-            ctx.fillRect(0, 0, canvas.width, canvas.height)
-
-            ctx.fillStyle = "#ff0000"
-            ctx.fillRect(0, 0, canvas.width, 80)
-
-            ctx.fillStyle = "#ffffff"
-            ctx.font = "bold 36px sans-serif"
-            ctx.fillText("SWIT – VOUCHER GIẢM GIÁ 10%", 40, 55)
-
-            ctx.fillStyle = "#333"
-            ctx.font = "28px sans-serif"
-            ctx.fillText("Mã voucher:", 40, 160)
-
-            ctx.font = "bold 52px sans-serif"
-            ctx.fillStyle = "#ff0000"
-            ctx.fillText(code, 40, 230)
-
-            ctx.font = "18px sans-serif"
-            ctx.fillStyle = "#555"
-
-            const text = `Chương trình giảm giá 10% tất cả các mã pin của SWIT chỉ áp dụng cho khách hàng tại sự kiện 
-Be Alpha Day ngày 14/03/2026. Thời gian áp dụng mã giảm giá từ 14/03/2026 đến 14/06/2026!`
-
-            const lines = text.split("\n")
-            let y = 300
-            lines.forEach(l => {
-                ctx.fillText(l, 40, y)
-                y += 28
-            })
-
-            const dataURL = canvas.toDataURL("image/png")
-
-            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent)
-
-            if (isIOS) {
-                const w = window.open()
-                w.document.write("<img src='" + dataURL + "' style='width:100%'>")
-            } else {
-                const link = document.createElement("a")
-                link.download = "voucher-" + code + ".png"
-                link.href = dataURL
-                link.click()
-            }
-
-            if (callback) callback()
-        }
 
         window.addEventListener("load", function () {
 
@@ -351,11 +315,15 @@ Be Alpha Day ngày 14/03/2026. Thời gian áp dụng mã giảm giá từ 14/03
             document.getElementById("voucherCode").innerText = saved
 
             const modalEl = document.getElementById("voucherModal")
-            const modal = new bootstrap.Modal(modalEl, { backdrop: "static", keyboard: false })
+
+            const modal = new bootstrap.Modal(modalEl, {
+                backdrop: "static",
+                keyboard: false
+            })
 
             modal.show()
 
-            modalEl.addEventListener("shown.bs.modal", launchConfettiFromModal, { once: true })
+            modalEl.addEventListener("shown.bs.modal", launchConfettiFromVoucher, { once: true })
 
         })
 
