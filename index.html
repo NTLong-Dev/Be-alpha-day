@@ -169,26 +169,7 @@
         const submitBtn = document.getElementById("submitBtn")
         const loading = document.getElementById("loading")
 
-        let currentVoucherCode = ""
         let isSubmitting = false
-
-        function randomVoucherCode() {
-
-            const prefix = "SWIT10"
-            const time = Date.now().toString().slice(-4)
-            const rand = Math.floor(Math.random() * 900 + 100)
-
-            return prefix + time + rand
-
-        }
-
-        function saveVoucher(code) {
-            localStorage.setItem("swit_voucher", code)
-        }
-
-        function loadVoucher() {
-            return localStorage.getItem("swit_voucher")
-        }
 
         function launchConfettiFromVoucher() {
 
@@ -240,41 +221,43 @@
             const phone = document.getElementById("phone").value.trim()
 
             if (!name || !phone) {
+
                 alert("Vui lòng nhập đầy đủ thông tin")
                 return
+
+            }
+
+            if (phone.length !== 10) {
+
+                alert("Số điện thoại không hợp lệ")
+                return
+
             }
 
             isSubmitting = true
             submitBtn.disabled = true
             loading.classList.remove("d-none")
 
-            currentVoucherCode = randomVoucherCode()
-
             fetch(API_URL, {
                 method: "POST",
                 headers: { "Content-Type": "text/plain;charset=utf-8" },
-                body: JSON.stringify({ name, phone, voucher: currentVoucherCode })
+                body: JSON.stringify({ name, phone })
             })
                 .then(r => r.json())
                 .then(res => {
 
                     loading.classList.add("d-none")
 
-                    if (res.result === "phone_exists") {
-                        alert("Số điện thoại đã nhận voucher.")
+                    if (!res.voucher) {
+
+                        alert("Có lỗi xảy ra")
                         submitBtn.disabled = false
                         isSubmitting = false
                         return
+
                     }
 
-                    if (res.result === "voucher_exists") {
-                        location.reload()
-                        return
-                    }
-
-                    document.getElementById("voucherCode").innerText = currentVoucherCode
-
-                    saveVoucher(currentVoucherCode)
+                    document.getElementById("voucherCode").innerText = res.voucher
 
                     const modalEl = document.getElementById("voucherModal")
 
@@ -303,27 +286,6 @@
         document.getElementById("acceptBtn").addEventListener("click", function () {
 
             window.location.href = REDIRECT_URL
-
-        })
-
-        window.addEventListener("load", function () {
-
-            const saved = loadVoucher()
-            if (!saved) return
-
-            currentVoucherCode = saved
-            document.getElementById("voucherCode").innerText = saved
-
-            const modalEl = document.getElementById("voucherModal")
-
-            const modal = new bootstrap.Modal(modalEl, {
-                backdrop: "static",
-                keyboard: false
-            })
-
-            modal.show()
-
-            modalEl.addEventListener("shown.bs.modal", launchConfettiFromVoucher, { once: true })
 
         })
 
