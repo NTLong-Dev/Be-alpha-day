@@ -1,128 +1,154 @@
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html lang="vi">
 
 <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta charset="utf-8">
+    <title>Nam Long AV</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        html,
         body {
-            width: 100%;
-            height: 100vh;
-            overflow: hidden;
-            background: #ffffff;
-            font-family: sans-serif;
-        }
-
-        iframe {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            border: none;
-        }
-
-        .loader {
-            position: fixed;
-            inset: 0;
-            background: #011216;
-            z-index: 9999;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            transition: opacity 0.6s ease;
-            will-change: opacity;
-        }
-
-        .loader.hide {
-            opacity: 0;
-            pointer-events: none;
-        }
-
-        .loader img {
-            width: 120px;
-            margin-bottom: 20px;
-            animation: spin 1.5s linear infinite;
-        }
-
-        .text {
-            font-size: 14px;
-            color: #ffffff;
-        }
-
-        .hide-logo {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 120px;
-            height: 40px;
-            background: #444444;
-            z-index: 9999;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
             display: flex;
             align-items: center;
             justify-content: center;
-            overflow: hidden;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont
         }
 
-        .hide-logo img {
-            width: 100%;
-            height: 90%;
-            margin-top: 0px;
-            object-fit: contain;
+        .card {
+            border-radius: 22px
         }
 
-        @keyframes spin {
-            0% {
-                transform: rotate(0deg);
-            }
+        .form-control {
+            border-radius: 12px
+        }
 
-            100% {
-                transform: rotate(360deg);
-            }
+        .btn {
+            border-radius: 14px
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 12px auto
+        }
+
+        .logo img {
+            width: 120px;
+        }
+
+        input {
+            font-size: 15px !important;
+            padding: 12px 16px;
+        }
+
+        h4 {
+            font-size: 25px;
+        }
+
+        P {
+            font-size: 17px;
         }
     </style>
 </head>
 
 <body>
-    <div class="hide-logo"><img src="namlongav-logo.png" alt=""></div>
-    <div id="loader" class="loader">
-        <img src="namlongav-logo.png">
-        <div class="text">Đang tải...</div>
+
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-11 col-sm-8 col-md-6 col-lg-4">
+
+                <div class="card shadow-lg">
+                    <div class="card-body p-4 p-lg-5">
+
+                        <div class="logo">
+                            <img src="namlong.png">
+                        </div>
+
+                        <h4 class="text-center fw-bold mb-2">Đăng ký thông tin</h4>
+                        <p class="text-center text-muted mb-4">Xin mời quý khách nhập thông tin</p>
+
+                        <form id="switForm">
+
+                            <div class="mb-2">
+                                <label class="form-label">Họ và tên: </label>
+                                <input type="text" id="name" class="form-control form-control-lg" required>
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label">Số điện thoại: </label>
+                                <input type="tel" id="phone" class="form-control form-control-lg" required
+                                    minlength="10" maxlength="10">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Công ty: </label>
+                                <input type="text" id="company" class="form-control form-control-lg" required>
+                            </div>
+
+                            <button type="submit" class="btn btn-dark w-100 btn-lg" id="submitBtn">
+                                Gửi thông tin
+                            </button>
+
+                        </form>
+
+                        <div id="loading" class="text-center mt-3 text-muted d-none">
+                            Đang xử lý...
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
     </div>
-    <iframe id="frame" src="https://online.anyflip.com/qrzlr/okht/index.html" loading="lazy">
-    </iframe>
 
     <script>
-        const frame = document.getElementById("frame");
-        const loader = document.getElementById("loader");
 
-        let isLoaded = false;
+        const API_URL = "https://script.google.com/macros/s/AKfycbzdRnmhIq51Flgu7x9cHyLnTfnlpffmiH6oGYwf4S307crPc3TxrYVqYPcpljzRzsfT/exec"
 
-        function hideLoader() {
-            loader.classList.add("hide");
-        }
+        const form = document.getElementById("switForm")
+        const submitBtn = document.getElementById("submitBtn")
+        const loading = document.getElementById("loading")
 
-        frame.onload = function () {
-            isLoaded = true;
-            setTimeout(hideLoader, 300);
-        };
+        let isSubmitting = false
 
-        setTimeout(() => {
-            if (!isLoaded) {
-                hideLoader();
+        form.addEventListener("submit", function (e) {
+
+            e.preventDefault()
+
+            if (isSubmitting) return
+
+            const name = document.getElementById("name").value.trim()
+            const company = document.getElementById("company").value.trim()
+            const phone = document.getElementById("phone").value.trim()
+
+            if (!name || !company || !phone) {
+                alert("Vui lòng nhập đầy đủ thông tin")
+                return
             }
-        }, 4000);
 
-        window.addEventListener("load", () => {
-            setTimeout(hideLoader, 2000);
-        });
+            isSubmitting = true
+            submitBtn.disabled = true
+            loading.classList.remove("d-none")
+
+            fetch(API_URL, {
+                method: "POST",
+                headers: { "Content-Type": "text/plain;charset=utf-8" },
+                body: JSON.stringify({ name, company, phone })
+            })
+                .then(() => {
+                    window.location.href = "https://ntlong-dev.github.io/Av-connect-2026/catalog.html"
+                })
+                .catch(() => {
+                    submitBtn.disabled = false
+                    loading.classList.add("d-none")
+                    isSubmitting = false
+                })
+
+        })
 
     </script>
 
